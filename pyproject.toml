@@ -1,0 +1,36 @@
+[project]
+name = "accounting-data-platform"
+version = "0.1.0"
+description = "An accounting data platform built with DuckDB, Parquet and dbt (local first, AWS Athena later)"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    # local query engine + columnar storage
+    "duckdb>=1.1",
+    "pyarrow>=18.0",
+
+    # transformation layer
+    "dbt-core>=1.9",
+    "dbt-duckdb>=1.9",
+
+    # dataframe glue for notebooks / CSV -> parquet scripts
+    "pandas>=2.2",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+package = false
+# Supply-chain cooldown: only resolve package files uploaded at least 30 days ago
+exclude-newer = "30 days"
+# Exceptions: security fixes newer than the cooldown (re-check with pip-audit, then remove)
+exclude-newer-package = { tornado = "1 day", opentelemetry-api = "1 day" }
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]

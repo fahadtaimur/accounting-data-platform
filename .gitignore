@@ -1,0 +1,33 @@
+# --- Data (download with `make data`; source: https://doi.org/10.5281/zenodo.22014653)
+data/
+
+# --- DuckDB
+*.duckdb
+*.duckdb.wal
+
+# --- dbt
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# --- Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+
+# --- Notebooks
+.ipynb_checkpoints/
+
+# --- Secrets / local config
+.env
+.env.*
+!.env.example
+profiles.yml
+
+# --- Editor / OS
+.DS_Store
+.vscode/
+.idea/
