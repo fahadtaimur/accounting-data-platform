@@ -1,0 +1,292 @@
+cells:
+  - kind: 1
+    languageId: markdown
+    value: >-
+      # Exploring the general ledger
+
+
+      > **Work in progress.** First look at the synthetic general ledger from
+
+      > [Gronewald et al. (2026)](https://doi.org/10.5281/zenodo.22014653):
+      structure,
+
+      > integrity checks, time patterns and the largest entries. Findings here
+      will
+
+      > become dbt tests and models.
+
+
+      ### Contents
+
+      1. Structure
+
+      2. Integrity: does the ledger balance?
+
+      3. Account activity
+
+      4. Time patterns
+
+      5. Largest entries (window functions)
+
+
+      ## Setup
+
+
+      1. Install the [dbcode](https://dbcode.io) extension for VS Code.
+
+      2. From the repo root, run `uv sync`, then `make data` and `make raw`.
+      This
+         downloads the dataset and builds `data/raw/journal_entries.parquet`.
+      3. In dbcode, create a new **DuckDB** connection set to **in-memory**, and
+         choose it as this notebook's connection.
+      4. In the cell below, replace the path with the absolute path to your
+      clone of
+         this repo, then run it.
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: >-
+      -- Setup: point DuckDB at the repo root and create a view over the raw
+      Parquet file
+
+      SET file_search_path = '/path/to/accounting-data-platform';
+
+
+      CREATE OR REPLACE VIEW journal_entries AS
+
+      SELECT * FROM 'data/raw/journal_entries.parquet';
+    metadata:
+      runme.dev/id: 01M88DS0KJM05S6CFGR62R405F
+  - kind: 1
+    languageId: markdown
+    value: |-
+      ## 1. Structure
+
+      One row per **posting line**. Lines that share a `posting_id` form one
+      **journal entry**.
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Column data types
+      SELECT
+          column_name,
+          data_type,
+          is_nullable
+      FROM information_schema.columns
+      WHERE table_name = 'journal_entries'
+      ORDER BY ordinal_position;
+    metadata:
+      runme.dev/id: 01M88E9HXV6FZ52DF1RCNN0ZBF
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Preview
+      SELECT * FROM journal_entries LIMIT 5;
+    metadata:
+      runme.dev/id: 01M8AGEV6KSJVN2Q6DY6043CW6
+  - kind: 1
+    languageId: markdown
+    value: >-
+      ## 2. Integrity: does the ledger balance?
+
+
+      The first critical test. Under double-entry bookkeeping, debits must equal
+
+      credits for the ledger as a whole **and** for every journal entry. Any
+
+      imbalance needs to be investigated.
+
+
+      **Result:** both checks pass. Total debits equal total credits, and no
+      entry
+
+      is out of balance by a cent or more.
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Ledger level: total debits vs total credits
+      SELECT
+          SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END) AS total_debit,
+          SUM(CASE WHEN cd_flag = 'C' THEN amount ELSE 0 END) AS total_credit
+      FROM journal_entries;
+    metadata:
+      runme.dev/id: 01M8A64C4RSZ6JWTA12167QY5W
+  - kind: 2
+    languageId: sql
+    value: >-
+      -- Entry level: journal entries that don't balance (expect zero rows)
+
+      SELECT
+          posting_id,
+          SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END)
+              - SUM(CASE WHEN cd_flag = 'C' THEN amount ELSE 0 END) AS net_amount
+      FROM journal_entries
+
+      GROUP BY posting_id
+
+      HAVING ABS(net_amount) >= 0.01;
+    metadata:
+      runme.dev/id: 01M88EDFMJQJYTHT94K18EMF9R
+  - kind: 1
+    languageId: markdown
+    value: >-
+      ## 3. Account activity
+
+
+      Total debits and credits per GL account (an unadjusted trial balance
+      view).
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Debits and credits by GL account
+      SELECT
+          gl_account,
+          gl_account_name,
+          SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END) AS debit,
+          SUM(CASE WHEN cd_flag = 'C' THEN amount ELSE 0 END) AS credit
+      FROM journal_entries
+      GROUP BY gl_account, gl_account_name
+      ORDER BY gl_account;
+    metadata:
+      runme.dev/id: 01M88EE965YN2VCRVDKC45W3Q0
+  - kind: 1
+    languageId: markdown
+    value: >-
+      ## 4. Time patterns
+
+
+      **Findings so far:**
+
+      - **Clear seasonality, repeated in both years:** high season Apr–Oct
+        (~2.0–2.6M debits/month), low season Nov–Mar (~0.8–1.3M), lowest in
+        December. Volume roughly doubles in April and halves in November.
+      - **Steady posting volume:** the cumulative count of journal entries rises
+        roughly linearly within each year.
+      - Some dates between Dec 2023 and Apr 2024 have minimal postings.
+
+
+      Note: summing all debits counts every line (tax, payments, transfers), so
+      this
+
+      is total ledger activity, not sales.
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Monthly debit activity
+      SELECT
+          strftime(document_date, '%Y-%m') AS year_month,
+          SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END) AS debit_total
+      FROM journal_entries
+      GROUP BY year_month
+      ORDER BY year_month;
+    metadata:
+      runme.dev/id: 01M8A7HAA262NGTJ44Y1NT7EC3
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Daily debit activity, largest days first
+      SELECT
+          document_date,
+          SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END) AS debit_total
+      FROM journal_entries
+      GROUP BY document_date
+      ORDER BY debit_total DESC;
+    metadata:
+      runme.dev/id: 01M8A70Q76J593VPDVMMSD5W1J
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Daily journal entry counts
+      SELECT
+          document_date,
+          COUNT(DISTINCT posting_id) AS journal_count
+      FROM journal_entries
+      GROUP BY document_date
+      ORDER BY document_date;
+    metadata:
+      runme.dev/id: 01M8AE34PAQGFBM8KBTZGPF2VG
+  - kind: 2
+    languageId: sql
+    value: >-
+      -- Cumulative journal entry count by month, restarting each year
+
+      WITH monthly AS (
+          SELECT
+              strftime(entered_date, '%Y-%m') AS year_month,
+              strftime(entered_date, '%Y') AS year,
+              COUNT(DISTINCT posting_id) AS journal_count
+          FROM journal_entries
+          GROUP BY year_month, year
+      )
+
+
+      SELECT
+          year_month,
+          journal_count,
+          SUM(journal_count) OVER (PARTITION BY year ORDER BY year_month) AS running_total_ytd
+      FROM monthly
+
+      ORDER BY year_month;
+    metadata:
+      runme.dev/id: 01M8A7NETDZ0BG342FD84X0Z4V
+  - kind: 1
+    languageId: markdown
+    value: |-
+      ## 5. Largest entries
+      **Finding:** many entries share identical totals within a month (e.g. ten
+      entries at exactly 4,445.84 in January 2023), which suggests recurring
+      transaction templates in the data generator.
+    metadata: {}
+  - kind: 2
+    languageId: sql
+    value: >-
+      -- Top 5 distinct entry totals per month
+
+      WITH entries AS (
+          SELECT
+              posting_id,
+              MIN(document_date) AS document_date,
+              date_trunc('month', MIN(document_date)) AS month,
+              SUM(CASE WHEN cd_flag = 'D' THEN amount ELSE 0 END) AS amount_total
+          FROM journal_entries
+          GROUP BY posting_id
+      ),
+
+
+      ranked AS (
+          SELECT
+              *,
+              RANK() OVER (PARTITION BY month ORDER BY amount_total DESC) AS rnk,
+              DENSE_RANK() OVER (PARTITION BY month ORDER BY amount_total DESC) AS dense_rnk
+          FROM entries
+      )
+
+
+      SELECT *
+
+      FROM ranked
+
+      WHERE dense_rnk <= 5
+
+      ORDER BY month, rnk;
+    metadata:
+      runme.dev/id: 01M8AEZCKXHK1EBA4HV0CGW8Y0
+  - kind: 1
+    languageId: markdown
+    value: |-
+      ## Next
+
+      - Missing values and basic statistics (`SUMMARIZE journal_entries`)
+      - Users posting to accounts they rarely touch
+      - Compare entry ID prefixes (`a_`, `f_`, `x_`) against the `label` column
+    metadata: {}
+metadata:
+  conn:
+    id: 4l3NemJ-CRVMMy1SKxw0s
+    name: je_duckdb
+  database: memory
+  schema: main
