@@ -54,7 +54,7 @@ Saarbrücken, Germany.
 
 The dataset is licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The data isn't stored in
-this repo; run `make data` to download the original files from Zenodo into `data/`. Any converted copies (e.g. Parquet) or derived models in this
+this repo; run `make data` to download the original files from Zenodo into `data/landing/`, then `make raw` to build the Parquet copy in `data/raw/`. Any converted copies (e.g. Parquet) or derived models in this
 repo are changes made by this project, not by the original authors.
 
 ## Status
