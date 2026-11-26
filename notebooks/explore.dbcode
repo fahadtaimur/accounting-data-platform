@@ -85,6 +85,28 @@ cells:
       SELECT * FROM journal_entries LIMIT 5;
     metadata:
       runme.dev/id: 01M8AGEV6KSJVN2Q6DY6043CW6
+  - kind: 2
+    languageId: sql
+    value: |-
+      -- Distinct values of the dataset's indicator columns
+      -- 0/1 flags: nwh, high_cash, top_n, label
+      -- Multi-value codes: promptly (1-3), weekend (0-2), marking (0-8)
+      SELECT
+          array_agg(DISTINCT nwh ORDER BY nwh) AS nwh,
+          array_agg(DISTINCT high_cash ORDER BY high_cash) AS high_cash,
+          array_agg(DISTINCT top_n ORDER BY top_n) AS top_n,
+          array_agg(DISTINCT label ORDER BY label) AS label,
+          array_agg(DISTINCT promptly ORDER BY promptly) AS promptly,
+          array_agg(DISTINCT weekend ORDER BY weekend) AS weekend,
+          array_agg(DISTINCT marking ORDER BY marking) AS marking
+      FROM journal_entries;
+    metadata:
+      runme.dev/id: 01M8AYCV0HGXBT0MZVA7B03X1Z
+  - kind: 2
+    languageId: sql
+    value: ""
+    metadata:
+      runme.dev/id: 01M8AYCZ6S39SG4DS6ADV8BF59
   - kind: 1
     languageId: markdown
     value: >-

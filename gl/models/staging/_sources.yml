@@ -1,0 +1,19 @@
+sources:
+  - name: raw
+    description: >
+      Raw layer built by `make raw` from the DIB General Ledger Data
+      (Gronewald et al., 2026, https://doi.org/10.5281/zenodo.22014653).
+    meta:
+      external_location: "../data/raw/{name}.parquet"
+
+    tables:
+      - name: journal_entries
+        description: One row per posting line. Lines sharing a posting_id form one journal entry.
+        columns:
+          - name: _source_row
+            description: Row number in the landing CSV; the only line identifier.
+            data_tests:
+              - unique
+              - not_null
+          - name: cd_flag
+            description: D = debit, C = credit

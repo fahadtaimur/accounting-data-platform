@@ -1,15 +1,29 @@
-Welcome to your new dbt project!
+# gl
 
-### Using the starter project
+dbt project that models the general ledger. Runs on DuckDB locally; Athena later.
 
-Try running the following commands:
-- dbt run
-- dbt test
+## Run
 
+From the repo root, build the raw data first:
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+```bash
+make data   # download the source files into data/landing
+make raw    # build data/raw/journal_entries.parquet
+```
+
+Then, from this folder:
+
+```bash
+uv run dbt debug   # check the connection
+uv run dbt build   # build models and run tests
+```
+
+Models build into `data/warehouse.duckdb`. Connection settings are in `profiles.yml`.
+
+## Layers
+
+| Folder | Materialization | Purpose |
+| --- | --- | --- |
+| `models/staging` | view | Cleaned 1:1 copies of the raw sources |
+| `models/intermediate` | view | Reshaping between staging and marts |
+| `models/marts` | table | Final tables for reporting and analysis |

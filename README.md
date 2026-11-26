@@ -60,3 +60,8 @@ repo are changes made by this project, not by the original authors.
 ## Status
 
 Early setup. More to come.
+
+## License
+
+Code in this repo is licensed under the [MIT License](LICENSE). The dataset is not
+covered by it and keeps its own CC BY 4.0 license (see [Data](#data)).
