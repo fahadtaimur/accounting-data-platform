@@ -1,0 +1,15 @@
+models:
+  - name: int_journal_entry_headers
+    description: One row per journal entry (header view).
+    columns:
+      - name: journal_entry_id
+        data_tests:
+          - not_null
+          - unique
+      - name: posting_date
+        data_tests:
+          - not_null
+      - name: line_count
+        description: Number of posting lines in the entry
+        data_tests:
+          - not_null
