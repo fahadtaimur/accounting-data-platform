@@ -1,4 +1,4 @@
-.PHONY: data raw dbt-run dbt-build
+.PHONY: data raw dbt-run dbt-build dbt-test dbt-docs
 
 # Download the dataset and notebook from Zenodo into data/landing
 data:
@@ -17,5 +17,10 @@ dbt-run:
 dbt-build:
 	cd gl && uv run dbt build
 
+# Run dbt tests only (models must already be built)
 dbt-test:
 	cd gl && uv run dbt test
+
+# Generate dbt docs and serve them at http://localhost:8080 (open in VS Code: Simple Browser: Show)
+dbt-docs:
+	cd gl && uv run dbt docs generate && uv run dbt docs serve --port 8080 --no-browser

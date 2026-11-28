@@ -16,6 +16,9 @@ clean-targets:  # removed by `dbt clean`
 # Default materialization setting
 models:
   gl:
+    +persist_docs:
+      relation: true
+      columns: true
     staging:
       +materialized: view
     intermediate:

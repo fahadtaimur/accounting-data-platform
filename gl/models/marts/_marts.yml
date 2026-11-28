@@ -1,0 +1,51 @@
+models:
+  - name: jet_01_top_entries_by_month
+    description: >
+      Journal Entry Test 01: the 10 largest journal entries per posting month by amount.
+      Uses rank(), so entries tied at the cut-off are all included and a month can
+      return more than 10 rows.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: journal_entry_id
+        data_type: varchar
+        description: Journal entry identifier (posting_id in the source).
+        constraints:
+          - type: not_null
+          - type: primary_key
+        data_tests:
+          - unique
+      - name: posting_month
+        data_type: date
+        description: First day of the posting period, derived from posting_date.
+        constraints:
+          - type: not_null
+      - name: posting_date
+        data_type: date
+        description: Date that determines the accounting period the entry is recorded in.
+      - name: entered_at
+        data_type: timestamp
+        description: System timestamp when the entry was keyed into the ledger.
+      - name: posted_by
+        data_type: varchar
+        description: User who entered the journal entry.
+      - name: line_count
+        data_type: bigint
+        description: Number of posting lines in the entry (at least 2 under double-entry).
+      - name: amount
+        data_type: decimal(18, 2)
+        description: >
+          Total entry amount (debit_total). Debits equal credits for every entry, so
+          this is the entry size regardless of side.
+      - name: is_anomaly
+        data_type: boolean
+        description: Ground-truth label from the dataset; true if the entry is a seeded anomaly.
+      - name: anomaly_type_code
+        data_type: bigint
+        description: Anomaly scenario number from the dataset; 0 = not an anomaly.
+      - name: amount_rank
+        data_type: bigint
+        description: rank() of amount within the posting month, 1 = largest. Ties share a rank.
+        constraints:
+          - type: not_null
