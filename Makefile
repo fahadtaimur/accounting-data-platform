@@ -16,3 +16,6 @@ dbt-run:
 # Build dbt models and run tests in dependency order
 dbt-build:
 	cd gl && uv run dbt build
+
+dbt-test:
+	cd gl && uv run dbt test

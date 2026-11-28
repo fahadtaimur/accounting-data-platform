@@ -1,7 +1,8 @@
 -- Raw layer: landing CSV -> typed Parquet, one row per posting line.
 COPY (
     SELECT
-        row_number() OVER () AS _source_row,  -- CSV order is the only line identifier
+        -- CSV order is the only line identifier
+        row_number() OVER () AS _source_row,
         *,
         'journal_entries_4203.csv' AS _source_file,
         current_timestamp AS _loaded_at

@@ -1,0 +1,46 @@
+models:
+  - name: stg_gl__postings
+    description: One row per posting line. Lines sharing a journal_entry_id form one journal entry.
+    columns:
+      - name: posting_line_id
+        description: Row number in the landing CSV; the only line identifier.
+        data_tests:
+          - unique
+          - not_null
+      - name: journal_entry_id
+        data_tests:
+          - not_null
+      - name: account_number
+        data_tests:
+          - not_null
+      - name: amount
+        description: Unsigned amount; direction is in debit_credit.
+        data_tests:
+          - not_null
+      - name: debit_credit
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['D', 'C']
+      - name: entry_delay_code
+        description: Days from document_date to entered_at. 1 = 0-9, 2 = 10-29, 3 = 30+.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3]
+                quote: false
+      - name: weekend_code
+        description: Day entered. 0 = weekday, 1 = Saturday, 2 = Sunday.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2]
+                quote: false
+      - name: anomaly_type_code
+        description: Anomaly scenario number; 0 = not an anomaly.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                quote: false

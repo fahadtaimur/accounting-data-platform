@@ -102,11 +102,6 @@ cells:
       FROM journal_entries;
     metadata:
       runme.dev/id: 01M8AYCV0HGXBT0MZVA7B03X1Z
-  - kind: 2
-    languageId: sql
-    value: ""
-    metadata:
-      runme.dev/id: 01M8AYCZ6S39SG4DS6ADV8BF59
   - kind: 1
     languageId: markdown
     value: >-
